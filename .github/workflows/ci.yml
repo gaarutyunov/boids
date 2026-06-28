@@ -1,0 +1,39 @@
+name: CI
+on:
+  push:
+    branches: [main]
+  pull_request:
+jobs:
+  core:
+    name: Rust core (tests + portability)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+      - name: Unit tests (std)
+        run: cargo test --manifest-path core/Cargo.toml --features std
+      # Acceptance criterion (SPEC §11): the core compiles for a non-Wasm target
+      # with no browser/runtime/render dependencies. Building with no default
+      # features makes it `no_std` (only libm + alloc).
+      - name: Portability proof (no_std, non-wasm)
+        run: cargo build --manifest-path core/Cargo.toml --no-default-features
+
+  web:
+    name: Web build + typecheck
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: wasm32-unknown-unknown
+      - name: Install wasm-pack
+        run: curl https://rustwasm.github.io/wasm-pack/installer/init.sh -sSf | sh
+      - name: Build Wasm core
+        run: wasm-pack build core --target web --out-dir ../src/core-wasm
+      - name: Install deps
+        run: npm ci
+      - name: Typecheck + build
+        run: npm run build

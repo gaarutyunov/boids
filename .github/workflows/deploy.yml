@@ -1,0 +1,37 @@
+name: Deploy
+on:
+  push:
+    branches: [main]
+permissions:
+  contents: write # push to gh-pages branch
+concurrency:
+  group: pages-deploy
+  cancel-in-progress: true
+jobs:
+  build-deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: wasm32-unknown-unknown
+      - name: Install wasm-pack
+        run: curl https://rustwasm.github.io/wasm-pack/installer/init.sh -sSf | sh
+      - name: Build Wasm core
+        run: wasm-pack build core --target web --out-dir ../src/core-wasm
+      - name: Install & build site
+        run: |
+          npm ci
+          npm run build # vite build -> ./dist  (base: './')
+      - name: Deploy to gh-pages (root)
+        uses: JamesIves/github-pages-deploy-action@v4
+        with:
+          branch: gh-pages
+          folder: dist
+          clean: true
+          # Preserve preview subfolders so deploys don't wipe open PR previews:
+          clean-exclude: |
+            pr-preview/

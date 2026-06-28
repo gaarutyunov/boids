@@ -1,0 +1,40 @@
+name: PR Preview
+on:
+  pull_request:
+    types: [opened, reopened, synchronize, closed]
+permissions:
+  contents: write # write preview into gh-pages branch
+  pull-requests: write # post/update the preview-link comment
+concurrency:
+  group: pr-preview-${{ github.event.number }}
+  cancel-in-progress: true
+jobs:
+  preview:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: wasm32-unknown-unknown
+
+      # Build only when the PR is open (not needed on close -> cleanup only)
+      - name: Install wasm-pack
+        if: github.event.action != 'closed'
+        run: curl https://rustwasm.github.io/wasm-pack/installer/init.sh -sSf | sh
+      - name: Build
+        if: github.event.action != 'closed'
+        run: |
+          wasm-pack build core --target web --out-dir ../src/core-wasm
+          npm ci
+          npm run build
+
+      - name: Deploy / update / remove preview
+        uses: rossjrw/pr-preview-action@v1
+        with:
+          source-dir: dist
+          preview-branch: gh-pages
+          umbrella-dir: pr-preview
+          action: auto # deploy on open/sync, remove on close
