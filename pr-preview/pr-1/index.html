@@ -1,0 +1,80 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+    <title>Pinch-Boids</title>
+    <style>
+      :root {
+        color-scheme: dark;
+      }
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+      html,
+      body {
+        height: 100%;
+        background: #0a0e14;
+        overflow: hidden;
+        font-family: ui-monospace, Menlo, Consolas, monospace;
+      }
+      #scene {
+        display: block;
+        position: fixed;
+        inset: 0;
+        width: 100vw;
+        height: 100vh;
+      }
+      /* The camera feed is processed but NEVER shown (SPEC §5.4). */
+      #cam {
+        position: absolute;
+        width: 1px;
+        height: 1px;
+        opacity: 0;
+        pointer-events: none;
+        left: -9999px;
+        top: -9999px;
+      }
+      #status {
+        position: fixed;
+        left: 50%;
+        top: 50%;
+        transform: translate(-50%, -50%);
+        max-width: min(90vw, 480px);
+        padding: 16px 20px;
+        background: rgba(10, 14, 20, 0.85);
+        border: 1px solid rgba(127, 209, 255, 0.4);
+        border-radius: 10px;
+        color: #cdd9e5;
+        font-size: 14px;
+        line-height: 1.5;
+        white-space: pre-line;
+        text-align: center;
+        z-index: 10;
+      }
+      #status.error {
+        border-color: rgba(255, 140, 120, 0.6);
+        color: #ffd0c8;
+      }
+      #hint {
+        position: fixed;
+        left: 50%;
+        bottom: 14px;
+        transform: translateX(-50%);
+        color: rgba(205, 217, 229, 0.6);
+        font-size: 12px;
+        z-index: 5;
+        pointer-events: none;
+      }
+    </style>
+    <script type="module" crossorigin src="./assets/index-VRQVtOqF.js"></script>
+  </head>
+  <body>
+    <canvas id="scene"></canvas>
+    <video id="cam" playsinline autoplay muted></video>
+    <div id="status">Loading…</div>
+    <div id="hint">Pinch thumb + index to gather the flock · fully close to orbit</div>
+  </body>
+</html>
