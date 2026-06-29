@@ -58,6 +58,24 @@ export function configToParamArray(c: SimConfig): Float32Array {
 
 export const BOID_COUNT = 400;
 
+// The hand model sees a centered SQUARE crop of the camera and returns landmarks
+// normalized to that square ([0,1]²). Map that square onto a centered square
+// region of the (generally non-square) canvas using a SINGLE uniform scale, so
+// the silhouette isn't stretched and the pinch signal stays scale-invariant (a
+// uniform factor cancels in raw_gap = dist(thumb,index)/dist(wrist,mcp)).
+export interface HandViewport {
+  scale: number;
+  offsetX: number;
+  offsetY: number;
+}
+
+export function handViewport(worldW: number, worldH: number): HandViewport {
+  // Use the larger dimension so the hand can reach the screen edges (the square
+  // overflows the shorter axis, which is fine — the hand sits near center).
+  const scale = Math.max(worldW, worldH);
+  return { scale, offsetX: (worldW - scale) / 2, offsetY: (worldH - scale) / 2 };
+}
+
 // Run inference at most this often (ms). Decouples inference rate from render
 // rate (SPEC §5.5): the last HandResult is reused between inferences.
 export const INFERENCE_INTERVAL_MS = 1000 / 30;

@@ -13,6 +13,11 @@ export interface FrameState {
   midpointX: number;
   midpointY: number;
   detected: boolean;
+  // Uniform mapping from normalized [0,1] landmark coords to world px. Shared
+  // with the shell so the drawn silhouette matches what's fed to the core.
+  handOffsetX: number;
+  handOffsetY: number;
+  handScale: number;
 }
 
 export interface Renderer {

@@ -9,6 +9,7 @@ import {
   BOID_COUNT,
   configToParamArray,
   defaultConfig,
+  handViewport,
   INFERENCE_INTERVAL_MS,
   type SimConfig,
 } from './config';
@@ -139,18 +140,22 @@ class Shell {
         });
     }
 
-    // 3. Feed landmarks (world px) into the core's smoothed pinch math.
+    // 3. Feed landmarks (world px) into the core's smoothed pinch math, using a
+    // single uniform transform (square crop -> centered square of the canvas).
     const hand = this.lastHand;
+    const vp = handViewport(this.worldW, this.worldH);
+    const wx = (n: number) => vp.offsetX + n * vp.scale;
+    const wy = (n: number) => vp.offsetY + n * vp.scale;
     if (hand.detected && hand.landmarks.length === 21) {
       const t = hand.landmarks[LM_THUMB_TIP];
       const i = hand.landmarks[LM_INDEX_TIP];
       const w = hand.landmarks[LM_WRIST];
       const m = hand.landmarks[LM_MIDDLE_MCP];
       this.sim.feed_landmarks(
-        t.x * this.worldW, t.y * this.worldH,
-        i.x * this.worldW, i.y * this.worldH,
-        w.x * this.worldW, w.y * this.worldH,
-        m.x * this.worldW, m.y * this.worldH,
+        wx(t.x), wy(t.y),
+        wx(i.x), wy(i.y),
+        wx(w.x), wy(w.y),
+        wx(m.x), wy(m.y),
         true,
       );
     } else {
@@ -172,6 +177,9 @@ class Shell {
       midpointX: this.sim.midpoint_x(),
       midpointY: this.sim.midpoint_y(),
       detected: this.sim.detected(),
+      handOffsetX: vp.offsetX,
+      handOffsetY: vp.offsetY,
+      handScale: vp.scale,
     };
     this.renderer.draw(state, hand);
   }

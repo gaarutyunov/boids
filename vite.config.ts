@@ -13,7 +13,10 @@ export default defineConfig({
     viteStaticCopy({
       targets: [
         {
-          src: 'node_modules/onnxruntime-web/dist/*.{wasm,mjs}',
+          // Only the single-threaded SIMD runtime actually used by the
+          // webgpu(jsep)+wasm config — not the asyncify/jspi/threaded variants
+          // (which would add ~90MB of unused binaries to every deploy/preview).
+          src: 'node_modules/onnxruntime-web/dist/ort-wasm-simd-threaded.{jsep.,}{wasm,mjs}',
           dest: 'ort',
         },
       ],

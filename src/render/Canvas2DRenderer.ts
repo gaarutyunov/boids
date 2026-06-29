@@ -53,7 +53,7 @@ export class Canvas2DRenderer implements Renderer {
 
     this.drawBoids(state);
     if (hand.detected && hand.landmarks.length === 21) {
-      this.drawHand(hand);
+      this.drawHand(hand, state);
     }
     if (state.detected) {
       this.drawTarget(state);
@@ -94,12 +94,15 @@ export class Canvas2DRenderer implements Renderer {
     ctx.fill();
   }
 
-  // Landmarks are in mirrored, image-normalized [0,1] coords; scale to canvas.
-  private drawHand(hand: HandResult): void {
+  // Landmarks are in mirrored, image-normalized [0,1] coords (over the square
+  // model crop); map to world px with the SAME uniform transform the shell feeds
+  // to the core, so the silhouette and the boid target agree.
+  private drawHand(hand: HandResult, state: FrameState): void {
     const ctx = this.ctx;
-    const w = this.width;
-    const h = this.height;
-    const pts = hand.landmarks.map((l) => ({ x: l.x * w, y: l.y * h }));
+    const pts = hand.landmarks.map((l) => ({
+      x: state.handOffsetX + l.x * state.handScale,
+      y: state.handOffsetY + l.y * state.handScale,
+    }));
 
     // Optional solid silhouette feel via convex hull fill.
     const hull = convexHull(pts);

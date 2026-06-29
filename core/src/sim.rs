@@ -5,7 +5,7 @@
 extern crate alloc;
 use alloc::vec::Vec;
 
-use crate::math::{clampf, smoothstep, Vec2};
+use crate::math::{smoothstep, Vec2};
 use crate::params::Params;
 use crate::pinch::PinchState;
 
@@ -84,14 +84,18 @@ impl Sim {
 
         let render_buf = alloc::vec![0.0f32; count * 4];
 
-        Sim {
+        let mut sim = Sim {
             width,
             height,
             boids,
             params: Params::default(),
             pinch: PinchState::new(),
             render_buf,
-        }
+        };
+        // Populate the render buffer with initial positions so a renderer that
+        // draws before the first `step()` doesn't see every boid at (0,0).
+        sim.refresh_render_buf();
+        sim
     }
 
     pub fn params(&self) -> &Params {
@@ -110,7 +114,8 @@ impl Sim {
         &self.pinch
     }
 
-    /// Resize the world (e.g. on canvas resize). Positions are clamped in.
+    /// Resize the world (e.g. on canvas resize). Any boid left outside the new
+    /// bounds is wrapped back in on its next `step()` (see `wrap`).
     pub fn resize(&mut self, width: f32, height: f32) {
         self.width = width;
         self.height = height;
@@ -182,9 +187,9 @@ impl Sim {
             let d_sq = offset.len_sq();
 
             if d_sq < sr_sq && d_sq > 1e-9 {
-                // Separation: push away, weighted by 1/distance.
+                // Separation: push away, weighted by 1/distance (SPEC §5.3).
                 let d = libm::sqrtf(d_sq);
-                sep = sep.add(offset.scale(1.0 / (d * d)));
+                sep = sep.add(offset.scale(1.0 / d));
                 sep_count += 1;
             }
             if d_sq < pr_sq {
@@ -287,23 +292,25 @@ impl Sim {
     }
 }
 
-/// Wrap a position toroidally within `[0, w) x [0, h)`.
+/// Wrap a position toroidally into `[0, w) x [0, h)`. Robust to arbitrarily
+/// large overshoot (e.g. a big `dt` after a stall, or a position left far out of
+/// bounds by a world resize) via a true modulo rather than a single shift.
 #[inline]
 fn wrap(p: &mut Vec2, w: f32, h: f32) {
     if w > 0.0 {
-        if p.x < 0.0 {
-            p.x += w;
-        } else if p.x >= w {
-            p.x -= w;
-        }
-        p.x = clampf(p.x, 0.0, w);
+        p.x = wrap_coord(p.x, w);
     }
     if h > 0.0 {
-        if p.y < 0.0 {
-            p.y += h;
-        } else if p.y >= h {
-            p.y -= h;
-        }
-        p.y = clampf(p.y, 0.0, h);
+        p.y = wrap_coord(p.y, h);
+    }
+}
+
+#[inline]
+fn wrap_coord(v: f32, size: f32) -> f32 {
+    let m = libm::fmodf(v, size);
+    if m < 0.0 {
+        m + size
+    } else {
+        m
     }
 }
