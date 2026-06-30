@@ -1,0 +1,41 @@
+[package]
+name = "pinch-boids-core"
+version = "1.0.0"
+edition = "2021"
+description = "Portable, no_std-friendly pinch math + boids simulation for Pinch-Boids"
+license = "MIT"
+repository = "https://github.com/gaarutyunov/boids"
+
+[lib]
+crate-type = ["cdylib", "rlib"]
+
+[features]
+# Default build targets the browser (wasm-pack). It pulls in std + wasm-bindgen.
+default = ["wasm"]
+# Enable the Rust standard library (needed by wasm-bindgen and the test harness).
+std = []
+# Expose the wasm-bindgen JS API. Implies std.
+wasm = ["std", "dep:wasm-bindgen"]
+
+[dependencies]
+# Math functions usable from `core` (no_std). Always available.
+libm = "0.2"
+# Only compiled in for the browser build; gated behind the `wasm` feature so the
+# core proves it has no browser/runtime/render dependencies on other targets.
+wasm-bindgen = { version = "0.2", optional = true }
+
+# wasm-opt is a nice-to-have size optimizer but requires downloading the
+# binaryen binary. Disable it so offline/sandboxed builds succeed; CI runners
+# with network access can re-enable it.
+[package.metadata.wasm-pack.profile.release]
+wasm-opt = false
+
+[profile.dev]
+# Needed so the standalone `no_std` portability check links (no unwinder).
+panic = "abort"
+
+[profile.release]
+opt-level = 3
+lto = true
+codegen-units = 1
+panic = "abort"

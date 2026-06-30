@@ -1,0 +1,14 @@
+# Node
+node_modules/
+dist/
+
+# Rust / Wasm
+core/target/
+target/
+
+# Generated wasm-pack output (rebuilt by `npm run build:wasm` / CI)
+src/core-wasm/
+
+# Editor / OS
+.DS_Store
+*.log
