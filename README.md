@@ -1,4 +1,4 @@
-# Pinch-Boids
+# Boids
 
 **Live:** [boids.garutyunov.com](https://boids.garutyunov.com/)
 
