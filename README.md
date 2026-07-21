@@ -1,4 +1,6 @@
-# Pinch-Boids
+# Boids
+
+**Live:** [boids.garutyunov.com](https://boids.garutyunov.com/)
 
 A browser toy that uses your webcam to detect a hand and control a flock of
 [boids](https://en.wikipedia.org/wiki/Boids) by **pinching** thumb and index
@@ -129,8 +131,8 @@ One-time setup after the first successful deploy:
 
 Resulting URLs:
 
-- Production: `https://<user>.github.io/<repo>/`
-- PR preview: `https://<user>.github.io/<repo>/pr-preview/pr-<N>/`
+- Production: [`https://boids.garutyunov.com/`](https://boids.garutyunov.com/)
+- PR preview: `https://boids.garutyunov.com/pr-preview/pr-<N>/`
 
 Because previews are served from a subfolder, **all asset paths are relative**
 (`vite base: './'`, model/Wasm/ORT runtime loaded via relative URLs) so a preview
